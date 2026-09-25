@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>utileria.js - Iniciar sesión</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <span class="marca">utileria.js</span>
+        <div>
+            <a href="index.html">Registro</a>
+            <a href="login.html" class="activo">Login</a>
+        </div>
+    </nav>
+
+    <div class="contenedor">
+        <div class="encabezado">
+            <h1>Iniciar sesión</h1>
+            <p class="subtitulo">Validado con validarCorreo() y validarPassword()</p>
+        </div>
+
+        <div class="cuerpo">
+        <form id="formLogin" novalidate>
+            <div class="grupo">
+                <label for="correo">Correo electrónico</label>
+                <input type="email" id="correo" placeholder="Ej. joseph@itoaxaca.mx" autocomplete="username">
+                <span class="mensaje" id="msgCorreo"></span>
+            </div>
+
+            <div class="grupo">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" placeholder="Ej. Oaxaca#2026" autocomplete="current-password">
+                <ul class="requisitos" id="requisitos">
+                    <li data-regla="longitud">Mínimo 8 caracteres</li>
+                    <li data-regla="mayuscula">Una letra mayúscula</li>
+                    <li data-regla="minuscula">Una letra minúscula</li>
+                    <li data-regla="numero">Un número</li>
+                    <li data-regla="especial">Un carácter especial (! @ # $ % & * . -)</li>
+                </ul>
+                <span class="mensaje" id="msgPassword"></span>
+            </div>
+
+            <button type="submit">Entrar</button>
+        </form>
+
+        <div class="resultado" id="resultado"></div>
+        </div>
+    </div>
+
+    <footer>Osvaldo Jose Jose · Ingeniería en Sistemas Computacionales · TecNM Campus Oaxaca</footer>
+
+    <script src="js/utileria.js"></script>
+    <script>
+        const correo = document.getElementById("correo");
+        const password = document.getElementById("password");
+        const resultado = document.getElementById("resultado");
+
+
+        const reglas = {
+            longitud: function (p) { return p.length >= 8; },
+            mayuscula: function (p) { return /[A-Z]/.test(p); },
+            minuscula: function (p) { return /[a-z]/.test(p); },
+            numero: function (p) { return /\d/.test(p); },
+            especial: function (p) { return /[^A-Za-z0-9\s]/.test(p); }
+        };
+
+        password.addEventListener("input", function () {
+            document.querySelectorAll("#requisitos li").forEach(function (li) {
+                li.classList.toggle("cumple", reglas[li.dataset.regla](password.value));
+            });
+        });
+
+        function marcar(input, idMensaje, esValido, textoError) {
+            const mensaje = document.getElementById(idMensaje);
+            input.classList.toggle("valido", esValido);
+            input.classList.toggle("invalido", !esValido);
+            mensaje.className = "mensaje " + (esValido ? "ok" : "error");
+            mensaje.textContent = esValido ? "Correcto" : textoError;
+            return esValido;
+        }
+
+        document.getElementById("formLogin").addEventListener("submit", function (evento) {
+            evento.preventDefault();
+
+            const correoOk = marcar(correo, "msgCorreo", validarCorreo(correo.value),
+                "Formato de correo inválido");
+            const passwordOk = marcar(password, "msgPassword", validarPassword(password.value),
+                "La contraseña no cumple todos los requisitos");
+
+            console.log("validarCorreo →", correoOk, "| validarPassword →", passwordOk);
+
+            if (correoOk && passwordOk) {
+                resultado.className = "resultado ok";
+                resultado.textContent = "Acceso concedido. Bienvenido, " + correo.value.trim().split("@")[0] + ".";
+            } else {
+                resultado.className = "resultado error";
+                resultado.textContent = "Revisa los campos marcados en rojo.";
+            }
+        });
+    </script>
+</body>
+</html>

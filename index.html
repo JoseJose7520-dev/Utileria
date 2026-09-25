@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>utileria.js - Formulario de registro</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav>
+        <span class="marca">utileria.js</span>
+        <div>
+            <a href="index.html" class="activo">Registro</a>
+            <a href="login.html">Login</a>
+        </div>
+    </nav>
+
+    <div class="contenedor">
+        <div class="encabezado">
+            <h1>Registro de usuario</h1>
+            <p class="subtitulo">Llena tus datos; cada campo se revisa al salir de él.</p>
+        </div>
+
+        <div class="cuerpo">
+            <form id="formRegistro" novalidate>
+                <div class="grupo">
+                    <label for="nombre">Nombre completo</label>
+                    <input type="text" id="nombre" placeholder="Ej. Luis Monterrubio Díaz">
+                    <span class="mensaje" id="msgNombre"></span>
+                </div>
+
+                <div class="grupo">
+                    <label for="correo">Correo electrónico</label>
+                    <input type="email" id="correo" placeholder="Ej. LibradoAlonso@itoaxaca.mx">
+                    <span class="mensaje" id="msgCorreo"></span>
+                </div>
+
+                <div class="fila">
+                    <div class="grupo">
+                        <label for="telefono">Teléfono (10 dígitos)</label>
+                        <input type="tel" id="telefono" placeholder="(951) 123-45-67">
+                        <span class="mensaje" id="msgTelefono"></span>
+                    </div>
+
+                    <div class="grupo">
+                        <label for="cp">Código postal</label>
+                        <input type="text" id="cp" maxlength="5" inputmode="numeric" placeholder="Ej. 68000">
+                        <span class="mensaje" id="msgCp"></span>
+                    </div>
+                </div>
+
+                <div class="grupo">
+                    <label for="fechaNacimiento">Fecha de nacimiento</label>
+                    <input type="date" id="fechaNacimiento">
+                    <span class="mensaje" id="msgFecha"></span>
+                </div>
+
+                <div class="grupo">
+                    <label for="curp">CURP</label>
+                    <input type="text" id="curp" maxlength="18" placeholder="Ej. HEGG560427MVZRRL04">
+                    <span class="mensaje" id="msgCurp"></span>
+                </div>
+
+                <div class="grupo">
+                    <label for="rfc">RFC (13 caracteres)</label>
+                    <input type="text" id="rfc" maxlength="13" placeholder="Ej. HEGG560427AB1">
+                    <span class="mensaje" id="msgRfc"></span>
+                </div>
+
+                <button type="submit">Registrarme</button>
+                <button type="button" class="secundario" id="btnPruebas">Ejecutar pruebas en consola (F12)</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Ventana modal -->
+    <div class="modal-fondo" id="modal">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+            <div class="modal-cabecera">
+                <button type="button" class="cerrar" id="btnCerrarX" aria-label="Cerrar">&times;</button>
+                <h2 id="modalTitulo">¡Registro válido!</h2>
+            </div>
+            <div class="modal-contenido">
+                <p class="edad" id="modalEdad">0</p>
+                <p class="etiqueta-edad">años cumplidos</p>
+                <span class="insignia" id="modalInsignia"></span>
+                <div class="resumen" id="modalResumen"></div>
+                <button type="button" id="btnCerrar">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>Osvaldo Jose Jose · Ingeniería en Sistemas Computacionales · TecNM Campus Oaxaca</footer>
+
+    <script src="js/utileria.js"></script>
+    <script>
+        // ---------- Referencias ----------
+        const nombre = document.getElementById("nombre");
+        const correo = document.getElementById("correo");
+        const telefono = document.getElementById("telefono");
+        const cp = document.getElementById("cp");
+        const fecha = document.getElementById("fechaNacimiento");
+        const curp = document.getElementById("curp");
+        const rfc = document.getElementById("rfc");
+        const modal = document.getElementById("modal");
+
+        // Marca un 
+        function marcar(input, idMensaje, esValido, textoOk, textoError) {
+            const mensaje = document.getElementById(idMensaje);
+            input.classList.toggle("valido", esValido);
+            input.classList.toggle("invalido", !esValido);
+            mensaje.className = "mensaje " + (esValido ? "ok" : "error");
+            mensaje.textContent = esValido ? textoOk : textoError;
+            return esValido;
+        }
+
+        function revisarNombre() {
+            return marcar(nombre, "msgNombre", soloLetras(nombre.value),
+                "Nombre válido", "Solo se permiten letras (acentos y ñ incluidos)");
+        }
+
+        function revisarCorreo() {
+            return marcar(correo, "msgCorreo", validarCorreo(correo.value),
+                "Correo válido", "Formato esperado: usuario@dominio.com");
+        }
+
+        function revisarTelefono() {
+            const formateado = formatearTelefono(telefono.value);
+            const esValido = formateado !== null && validarLongitud(formateado.replace(/\s/g, ""), 10);
+            if (esValido) telefono.value = formateado;
+            return marcar(telefono, "msgTelefono", esValido,
+                "Formateado automáticamente", "Debe tener exactamente 10 dígitos");
+        }
+
+        function revisarCp() {
+            return marcar(cp, "msgCp", validarCodigoPostal(cp.value),
+                "Código postal válido", "5 dígitos, no puede iniciar con 00");
+        }
+
+        function revisarFecha() {
+            const edad = calcularEdad(fecha.value);
+            return marcar(fecha, "msgFecha", edad >= 0,
+                "Edad: " + edad + " años", "Ingresa una fecha válida que no sea futura");
+        }
+
+        function revisarCurp() {
+            curp.value = curp.value.toUpperCase();
+            return marcar(curp, "msgCurp", validarCURP(curp.value),
+                "CURP válida (estructura y dígito verificador)", "CURP inválida: revisa los 18 caracteres");
+        }
+
+        function revisarRfc() {
+            rfc.value = rfc.value.toUpperCase();
+            if (!validarRFC(rfc.value)) {
+                return marcar(rfc, "msgRfc", false, "", "RFC inválido: 4 letras + fecha AAMMDD + 3 de homoclave");
+            }
+            // Si la CURP ya es válida, se compara con ella
+            const conCurp = validarCURP(curp.value) ? validarRFC(rfc.value, curp.value) : true;
+            return marcar(rfc, "msgRfc", conCurp,
+                "RFC válido", "El RFC no coincide con tu CURP (primeros 10 caracteres)");
+        }
+
+        nombre.addEventListener("blur", revisarNombre);
+        correo.addEventListener("blur", revisarCorreo);
+        telefono.addEventListener("blur", revisarTelefono);
+        cp.addEventListener("blur", revisarCp);
+        fecha.addEventListener("change", revisarFecha);
+        curp.addEventListener("blur", function () {
+            revisarCurp();
+            if (rfc.value) revisarRfc();
+        });
+        rfc.addEventListener("blur", revisarRfc);
+
+        document.getElementById("formRegistro").addEventListener("submit", function (evento) {
+            evento.preventDefault();
+
+            const resultados = [revisarNombre(), revisarCorreo(), revisarTelefono(), revisarCp(),
+                                revisarFecha(), revisarCurp(), revisarRfc()];
+            if (resultados.includes(false)) {
+                console.warn("Formulario con errores:", resultados);
+                return;
+            }
+            abrirModal();
+        });
+
+        // ---------- Modal ----------
+        function abrirModal() {
+            const edad = calcularEdad(fecha.value);
+            const mayor = esMayorDeEdad(fecha.value);
+            const insignia = document.getElementById("modalInsignia");
+
+            document.getElementById("modalEdad").textContent = edad;
+            insignia.textContent = mayor ? "Mayor de edad" : "Menor de edad";
+            insignia.className = "insignia " + (mayor ? "mayor" : "menor");
+
+            // textContent evita inyectar HTML escrito por el usuario
+            const resumen = document.getElementById("modalResumen");
+            resumen.innerHTML = "";
+            [["Nombre", nombre.value.trim()], ["Correo", correo.value.trim()],
+             ["Teléfono", telefono.value], ["C.P.", cp.value.trim()],
+             ["CURP", curp.value], ["RFC", rfc.value]].forEach(function (par) {
+                const p = document.createElement("p");
+                const b = document.createElement("strong");
+                b.textContent = par[0] + ": ";
+                p.appendChild(b);
+                p.appendChild(document.createTextNode(par[1]));
+                resumen.appendChild(p);
+            });
+
+            console.log("Registro válido →", { nombre: nombre.value.trim(), edad: edad, mayorDeEdad: mayor });
+            modal.classList.add("abierto");
+            document.getElementById("btnCerrar").focus();
+        }
+
+        function cerrarModal() {
+            modal.classList.remove("abierto");
+        }
+
+        document.getElementById("btnCerrar").addEventListener("click", cerrarModal);
+        document.getElementById("btnCerrarX").addEventListener("click", cerrarModal);
+        modal.addEventListener("click", function (e) { if (e.target === modal) cerrarModal(); });
+        document.addEventListener("keydown", function (e) { if (e.key === "Escape") cerrarModal(); });
+
+        // ---------- Pruebas en consola (para las capturas del README) ----------
+        document.getElementById("btnPruebas").addEventListener("click", function () {
+            console.clear();
+            console.log("%c utileria.js — pruebas ", "background:#15803d;color:white;font-weight:bold;padding:3px 6px;border-radius:3px");
+            console.table([
+                { funcion: 'validarCorreo("joseph@itoaxaca.mx")', resultado: validarCorreo("joseph@itoaxaca.mx") },
+                { funcion: 'validarCorreo("joseph@itoaxaca")', resultado: validarCorreo("joseph@itoaxaca") },
+                { funcion: 'soloLetras("María José")', resultado: soloLetras("María José") },
+                { funcion: 'soloLetras("Juan123")', resultado: soloLetras("Juan123") },
+                { funcion: 'validarLongitud("9511234567", 10)', resultado: validarLongitud("9511234567", 10) },
+                { funcion: 'validarLongitud(123456, 5)', resultado: validarLongitud(123456, 5) },
+                { funcion: 'calcularEdad("2005-03-15")', resultado: calcularEdad("2005-03-15") },
+                { funcion: 'esMayorDeEdad("2000-01-01")', resultado: esMayorDeEdad("2000-01-01") },
+                { funcion: 'esMayorDeEdad("2015-06-10")', resultado: esMayorDeEdad("2015-06-10") },
+                { funcion: 'validarPassword("Oaxaca#2026")', resultado: validarPassword("Oaxaca#2026") },
+                { funcion: 'validarPassword("oaxaca2026")', resultado: validarPassword("oaxaca2026") },
+                { funcion: 'validarCURP("HEGG560427MVZRRL04")', resultado: validarCURP("HEGG560427MVZRRL04") },
+                { funcion: 'validarCURP("HEGG560427MVZRRL09")', resultado: validarCURP("HEGG560427MVZRRL09") },
+                { funcion: 'formatearTelefono("(951) 123-45-67")', resultado: formatearTelefono("(951) 123-45-67") },
+                { funcion: 'formatearTelefono("12345")', resultado: formatearTelefono("12345") },
+                { funcion: 'validarCodigoPostal("68000")', resultado: validarCodigoPostal("68000") },
+                { funcion: 'validarCodigoPostal("00123")', resultado: validarCodigoPostal("00123") },
+                { funcion: 'validarRFC("HEGG560427AB1", "HEGG560427MVZRRL04")', resultado: validarRFC("HEGG560427AB1", "HEGG560427MVZRRL04") },
+                { funcion: 'validarRFC("LOPA900101AB1", "HEGG560427MVZRRL04")', resultado: validarRFC("LOPA900101AB1", "HEGG560427MVZRRL04") }
+            ]);
+        });
+    </script>
+</body>
+</html>
