@@ -2,8 +2,8 @@
 
 **Autor:** Joseph — Ingeniería en Sistemas Computacionales, TecNM Campus Oaxaca
 
-🔗 **Demo en vivo:** https://josejose7520-dev.github.io/utileria/
-📁 **Repositorio:** https://github.com/JoseJose7520-dev/utileria
+🔗 **Demo en vivo:** https://josejose7520-dev.github.io/Utileria/
+📁 **Repositorio:** https://github.com/JoseJose7520-dev/Utileria
 
 ---
 
